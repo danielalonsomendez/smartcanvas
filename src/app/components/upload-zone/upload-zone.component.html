@@ -1,0 +1,31 @@
+<div 
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  [class.border-zinc-300]="isDragging()"
+  [class.bg-zinc-50]="isDragging()"
+  class="relative border border-dashed border-zinc-200 bg-white rounded-xl p-5 text-center transition-all duration-200 ease-out flex flex-col items-center justify-center group cursor-pointer hover:border-zinc-300"
+  (click)="fileInput.click()"
+>
+  <!-- Upload Icon -->
+  <div class="w-9 h-9 rounded-lg bg-zinc-50 border border-zinc-100 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-200">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </div>
+
+  <h2 class="font-display font-medium text-xs text-zinc-950 mb-0.5">Upload new image</h2>
+  <p class="text-[10px] text-zinc-400 max-w-[180px] mb-3 leading-normal">Drag image here or browse</p>
+  
+  <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-zinc-950 text-white font-medium text-[10px] hover:bg-zinc-800 transition-colors">
+    Choose File
+  </span>
+
+  <input 
+    #fileInput 
+    type="file" 
+    class="hidden" 
+    accept="image/*" 
+    (change)="onFileSelected($event)" 
+  />
+</div>

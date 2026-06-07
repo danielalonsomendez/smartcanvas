@@ -1,0 +1,15 @@
+<div class="bg-white border border-zinc-100 rounded-2xl p-4 md:p-6 shadow-sm overflow-hidden flex flex-col gap-5">
+  <!-- Image Container -->
+  <div class="relative rounded-xl overflow-hidden bg-zinc-50 border border-zinc-100 flex items-center justify-center max-h-[500px]">
+    <img 
+      [src]="imageSrc()" 
+      [alt]="fileName()" 
+      class="max-h-[500px] w-auto object-contain select-none pointer-events-none" 
+    />
+  </div>
+
+  <!-- Title -->
+  <div class="pt-2 border-t border-zinc-50 px-1">
+    <h3 class="font-medium text-sm text-zinc-950 truncate" [title]="fileName()">{{ fileName() }}</h3>
+  </div>
+</div>

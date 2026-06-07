@@ -1,0 +1,16 @@
+<div class="relative rounded-xl overflow-hidden bg-zinc-50 border border-zinc-100 flex items-center justify-center max-h-[500px] w-full select-none">
+  <!-- The image to inspect -->
+  <img 
+    #bgImage
+    [src]="imageSrc()" 
+    class="max-h-[500px] w-auto object-contain select-none pointer-events-none"
+    (load)="onImageLoaded()"
+  />
+  
+  <!-- Absolute overlay canvas for shapes -->
+  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div class="relative pointer-events-auto">
+      <canvas #viewerCanvas></canvas>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<div class="h-screen w-screen flex flex-col md:flex-row overflow-hidden bg-zinc-50">
+  <!-- Left Sidebar (Brand + Upload Zone + History + Chat/Layers tabs) -->
+  <app-history-sidebar
+    [images]="savedImages()"
+    [selectedId]="selectedImageId()"
+    [layers]="activeLayers()"
+    [activeImageName]="fileName()"
+    [imageSrc]="imageSrc()"
+    [canvasActions]="canvasActions()"
+    [imageMetadata]="imageMetadata()"
+    (selectImage)="onSelectImage($event)"
+    (deleteImage)="onDeleteHistoryItem($event)"
+    (fileSelected)="onFileSelected($event)"
+    (selectLayer)="onSelectLayer($event)"
+    (toggleLayerVisibility)="onToggleLayerVisibility($event.event, $event.layer)"
+    (deleteLayer)="onDeleteLayer($event.event, $event.layer)"
+    (backToList)="goBackToList()"
+  ></app-history-sidebar>
+
+  <!-- Right Work Area (Full Width / Height Editor with Tabs) -->
+  <div class="flex-1 h-full overflow-hidden flex flex-col bg-zinc-900">
+    @if (imageSrc()) {
+      <!-- Workspace tabs bar -->
+      <div class="bg-zinc-950 border-b border-zinc-800/80 px-4 py-2 flex items-center justify-between z-10 select-none">
+        <div class="flex items-center bg-zinc-900 p-0.5 rounded-lg border border-zinc-800/50">
+          <button 
+            type="button"
+            (click)="activeWorkspaceTab.set('image')"
+            [class]="'px-3 py-1 text-xs font-semibold rounded-md transition-all duration-150 cursor-pointer ' + (activeWorkspaceTab() === 'image' ? 'bg-zinc-800 text-white shadow-xs' : 'text-zinc-400 hover:text-white')"
+          >
+            Image
+          </button>
+          <button 
+            type="button"
+            (click)="activeWorkspaceTab.set('data')"
+            [class]="'px-3 py-1 text-xs font-semibold rounded-md transition-all duration-155 cursor-pointer ' + (activeWorkspaceTab() === 'data' ? 'bg-zinc-800 text-white shadow-xs' : 'text-zinc-400 hover:text-white')"
+          >
+            Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab content panels -->
+      <div class="flex-1 relative overflow-hidden">
+        @if (activeWorkspaceTab() === 'image') {
+          <app-canvas-editor
+            [imageSrc]="imageSrc()!"
+            [canvasData]="canvasData()"
+            (save)="onSaveCanvasData($event)"
+            (layersChange)="onLayersChanged($event)"
+            class="absolute inset-0 block overflow-hidden"
+          ></app-canvas-editor>
+        } @else {
+          <app-canvas-data class="absolute inset-0 block overflow-hidden"></app-canvas-data>
+        }
+      </div>
+    } @else {
+      <!-- Minimalist empty state -->
+      <div class="flex-1 flex flex-col items-center justify-center text-center select-none pointer-events-none">
+        <div class="w-16 h-16 rounded-2xl bg-zinc-100/50 border border-zinc-200/50 flex items-center justify-center mb-5 text-zinc-300">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+        </div>
+        <h3 class="font-display font-medium text-sm text-zinc-950 mb-1">No canvas active</h3>
+        <p class="text-xs text-zinc-400 max-w-xs leading-normal">Select an image from the sidebar or upload a new one to start drawing annotations</p>
+      </div>
+    }
+  </div>
+</div>
