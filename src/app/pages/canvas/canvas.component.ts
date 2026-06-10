@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { CanvasEditorComponent, CanvasActions } from '../../components/canvas-editor/canvas-editor.component';
+import { CanvasEditorComponent } from '../../components/canvas-editor/canvas-editor.component';
 import { CanvasDataComponent } from '../../components/canvas-data/canvas-data.component';
 import { HistorySidebarComponent } from '../../components/history-sidebar/history-sidebar.component';
 import { IndexedDbService, SavedImage } from '../../services/indexed-db.service';
@@ -32,9 +32,6 @@ export class CanvasComponent implements OnInit {
 
   // Active photo layer items synced from the canvas editor
   protected readonly activeLayers = signal<any[]>([]);
-
-  // Canvas actions bridge — updated after each layersChange event
-  protected readonly canvasActions = signal<CanvasActions | null>(null);
 
   // Active image metadata for the agent's context
   protected readonly imageMetadata = signal<{ name: string; width: number; height: number; size: string } | null>(null);
@@ -153,7 +150,6 @@ export class CanvasComponent implements OnInit {
     this.imageDimensions.set(null);
     this.canvasData.set(undefined);
     this.activeLayers.set([]);
-    this.canvasActions.set(null);
     this.imageMetadata.set(null);
   }
 
@@ -207,10 +203,6 @@ export class CanvasComponent implements OnInit {
 
   protected onLayersChanged(layers: any[]): void {
     this.activeLayers.set(layers);
-    // Refresh the canvasActions reference so the chat panel always has the latest
-    if (this.editorComponent) {
-      this.canvasActions.set(this.editorComponent.getCanvasActions());
-    }
   }
 
   private formatBytes(bytes: number, decimals = 2): string {

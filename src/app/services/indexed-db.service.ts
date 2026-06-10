@@ -11,28 +11,12 @@ export interface SavedImage {
   canvasData?: string;
 }
 
-export interface ChatMessage {
-  id?: string;
-  role: 'user' | 'assistant' | 'system' | 'tool';
-  content: string | null;
-  timestamp: number;
-  name?: string;
-  toolCallId?: string;
-  toolCalls?: any[];
-}
-
-export interface ChatHistoryRecord {
-  imageId: number;
-  messages: ChatMessage[];
-}
-
 @Injectable({
   providedIn: 'root',
 })
 export class IndexedDbService {
   private readonly dbName = 'SmartCanvasDB';
   private readonly storeName = 'images';
-  private readonly chatStoreName = 'chat_history';
   private db: IDBDatabase | null = null;
 
   private initDb(): Promise<IDBDatabase> {
@@ -45,9 +29,6 @@ export class IndexedDbService {
         const db = request.result;
         if (!db.objectStoreNames.contains(this.storeName)) {
           db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true });
-        }
-        if (!db.objectStoreNames.contains(this.chatStoreName)) {
-          db.createObjectStore(this.chatStoreName, { keyPath: 'imageId' });
         }
       };
 
@@ -107,10 +88,6 @@ export class IndexedDbService {
   }
 
   async deleteImage(id: number): Promise<void> {
-    // Delete chat history associated with the image first
-    await this.deleteChatHistory(id).catch((err) =>
-      console.warn(`Failed to delete chat history for image ${id}:`, err)
-    );
 
     const db = await this.initDb();
     return new Promise((resolve, reject) => {
@@ -162,59 +139,4 @@ export class IndexedDbService {
     });
   }
 
-  async getChatHistory(imageId: number): Promise<ChatMessage[]> {
-    const db = await this.initDb();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(this.chatStoreName, 'readonly');
-      const store = transaction.objectStore(this.chatStoreName);
-      const request = store.get(imageId);
-
-      request.onsuccess = () => {
-        const record = request.result as ChatHistoryRecord | undefined;
-        resolve(record ? record.messages : []);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  }
-
-  async saveChatHistory(imageId: number, messages: ChatMessage[]): Promise<void> {
-    const db = await this.initDb();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(this.chatStoreName, 'readwrite');
-      const store = transaction.objectStore(this.chatStoreName);
-      const record: ChatHistoryRecord = {
-        imageId,
-        messages,
-      };
-      const request = store.put(record);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  }
-
-  async deleteChatHistory(imageId: number): Promise<void> {
-    const db = await this.initDb();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(this.chatStoreName, 'readwrite');
-      const store = transaction.objectStore(this.chatStoreName);
-      const request = store.delete(imageId);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  }
 }

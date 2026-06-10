@@ -1,13 +1,12 @@
 import { Component, input, output, signal } from '@angular/core';
 import { SavedImage } from '../../services/indexed-db.service';
 import { UploadZoneComponent } from '../upload-zone/upload-zone.component';
-import { ChatPanelComponent } from '../chat-panel/chat-panel.component';
-import { CanvasActions } from '../canvas-editor/canvas-editor.component';
+
 
 @Component({
   selector: 'app-history-sidebar',
   standalone: true,
-  imports: [UploadZoneComponent, ChatPanelComponent],
+  imports: [UploadZoneComponent],
   templateUrl: './history-sidebar.component.html',
 })
 export class HistorySidebarComponent {
@@ -19,8 +18,6 @@ export class HistorySidebarComponent {
   activeImageName = input<string | null>(null);
   imageSrc = input<string | null>(null);
 
-  // Agent canvas actions bridge
-  canvasActions = input<CanvasActions | null>(null);
   imageMetadata = input<{ name: string; width: number; height: number; size: string } | null>(null);
 
   selectImage = output<SavedImage>();
@@ -33,7 +30,7 @@ export class HistorySidebarComponent {
   deleteLayer = output<any>();
   backToList = output<void>();
 
-  protected readonly activeTab = signal<'layers' | 'chat'>('layers');
+
 
   protected onSelect(image: SavedImage): void {
     this.selectImage.emit(image);
@@ -48,9 +45,7 @@ export class HistorySidebarComponent {
     this.fileSelected.emit(file);
   }
 
-  protected setActiveTab(tab: 'layers' | 'chat'): void {
-    this.activeTab.set(tab);
-  }
+
 
   protected goBackToList(): void {
     this.backToList.emit();
