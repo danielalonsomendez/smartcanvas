@@ -1,17 +1,19 @@
 import { Component, input, output, signal } from '@angular/core';
 import { SavedImage } from '../../services/indexed-db.service';
 import { UploadZoneComponent } from '../upload-zone/upload-zone.component';
-
+import { AiChatComponent } from '../ai-chat/ai-chat.component';
 
 @Component({
   selector: 'app-history-sidebar',
   standalone: true,
-  imports: [UploadZoneComponent],
+  imports: [UploadZoneComponent, AiChatComponent],
   templateUrl: './history-sidebar.component.html',
 })
 export class HistorySidebarComponent {
   images = input.required<SavedImage[]>();
   selectedId = input<number | null>(null);
+
+  protected readonly activeTab = signal<'layers' | 'chat'>('layers');
   
   // Layer details & photo-selected state properties
   layers = input<any[]>([]);

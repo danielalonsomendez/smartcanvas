@@ -9,9 +9,11 @@ import {
   OnDestroy,
   signal,
   effect,
+  inject,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Canvas, Rect, Polygon, Circle, Polyline, Line, FabricImage, Point } from 'fabric';
+import { CanvasInteractionService } from '../../services/canvas-interaction.service';
 
 export interface RectOptions {
   x: number;
@@ -61,6 +63,8 @@ interface ColorPreset {
   templateUrl: './canvas-editor.component.html',
 })
 export class CanvasEditorComponent implements AfterViewInit, OnDestroy {
+  private readonly canvasInteractionService = inject(CanvasInteractionService);
+
   imageSrc = input.required<string>();
   canvasData = input<string | undefined>();
 
@@ -167,6 +171,7 @@ export class CanvasEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.canvasInteractionService.unregisterCanvas();
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
@@ -457,6 +462,7 @@ export class CanvasEditorComponent implements AfterViewInit, OnDestroy {
     this.fitImage();
 
     this.updateLayersList();
+    this.canvasInteractionService.registerCanvas(this.canvas, this.backgroundImageObject);
   }
 
   private fitImage(): void {
@@ -564,7 +570,7 @@ export class CanvasEditorComponent implements AfterViewInit, OnDestroy {
   private autoSave(): void {
     if (!this.canvas || this.isDrawingRect || this.isDrawingPolygon) return;
 
-    const payload = this.canvas.toJSON();
+    const payload = this.canvas.toObject(['name']);
     this.save.emit(JSON.stringify(payload));
   }
 
@@ -590,9 +596,10 @@ export class CanvasEditorComponent implements AfterViewInit, OnDestroy {
 
     const mappedLayers = shapesOnly.map((obj, index) => {
       const type = obj.type === 'rect' ? 'Rectangle' : 'Polygon';
+      const customName = (obj as any).name;
       return {
         fabricObj: obj,
-        name: `${type} ${index + 1}`,
+        name: customName || `${type} ${index + 1}`,
         type: obj.type,
         visible: obj.visible,
         stroke: obj.stroke || '#000000',
@@ -788,13 +795,42 @@ export class CanvasEditorComponent implements AfterViewInit, OnDestroy {
     if (this.isDrawingRect) {
       this.isDrawingRect = false;
       if (this.activeRectObject) {
-        this.activeRectObject.set({
-          selectable: true,
-          evented: true,
-        });
-        this.activeRectObject.setCoords();
-        this.canvas?.setActiveObject(this.activeRectObject);
+        const left = this.activeRectObject.left;
+        const top = this.activeRectObject.top;
+        const width = this.activeRectObject.width;
+        const height = this.activeRectObject.height;
+
+        // Remove the temporary visual Rect object
+        this.canvas?.remove(this.activeRectObject);
         this.activeRectObject = null;
+
+        // Only add a shape if there's actual size (avoid click-accidents)
+        if (width > 2 && height > 2) {
+          const fillColor = this.hexToRgba(this.fillColor(), this.fillOpacity());
+          const polygon = new Polygon([
+            { x: left, y: top },
+            { x: left + width, y: top },
+            { x: left + width, y: top + height },
+            { x: left, y: top + height }
+          ], {
+            stroke: this.strokeColor(),
+            strokeWidth: this.strokeWidth(),
+            fill: fillColor,
+            selectable: true,
+            hoverCursor: 'move',
+            hasBorders: true,
+            hasControls: true,
+          });
+
+          // Set a custom default name
+          const shapeCount = this.canvas?.getObjects().filter(o => o.type !== 'image' && o.selectable !== false).length || 0;
+          (polygon as any).name = `Polygon ${shapeCount + 1}`;
+
+          this.canvas?.add(polygon);
+          this.canvas?.setActiveObject(polygon);
+          polygon.setCoords();
+        }
+
         this.canvas?.renderAll();
         this.autoSave();
       }

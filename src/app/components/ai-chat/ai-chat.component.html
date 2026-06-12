@@ -1,0 +1,392 @@
+<div class="flex flex-col h-full overflow-hidden bg-white select-none">
+
+  <!-- ================= 1. API KEY CONFIGURATION SCREEN ================= -->
+  @if (isConfiguringKey()) {
+    <div class="flex-1 flex flex-col p-6 overflow-y-auto scrollbar-thin">
+      <div class="flex items-center gap-2 mb-6 shrink-0">
+        <div class="w-7 h-7 rounded-lg bg-zinc-950 flex items-center justify-center text-white text-xs font-semibold">
+          AI
+        </div>
+        <span class="font-display font-semibold text-sm text-zinc-950">Gemini Setup</span>
+      </div>
+
+      <div class="flex-1 flex flex-col justify-center gap-6 min-h-[300px]">
+        <div class="text-center">
+          <h3 class="text-sm font-semibold text-zinc-900 mb-1">Enter your Gemini API Key</h3>
+          <p class="text-[11px] text-zinc-400 max-w-xs leading-normal">
+            Your key will be saved securely on your device inside IndexedDB and used to send prompts directly to Google.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <label class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Gemini API Key</label>
+          <input 
+            type="password" 
+            [(ngModel)]="apiKeyInput" 
+            placeholder="AIzaSy..."
+            class="w-full px-3 py-2 text-xs border border-zinc-200 rounded-xl bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:border-zinc-950 font-mono transition-all duration-150 select-text"
+          />
+          
+          <a 
+            href="https://aistudio.google.com/" 
+            target="_blank" 
+            class="text-[10px] font-medium text-zinc-500 hover:text-zinc-950 underline self-start cursor-pointer flex items-center gap-1"
+          >
+            Get a free Gemini API key from AI Studio
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-2.5 h-2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </a>
+        </div>
+
+        <button 
+          (click)="saveApiKey()"
+          [disabled]="!apiKeyInput.trim()"
+          class="w-full py-2.5 text-xs font-semibold bg-zinc-950 disabled:bg-zinc-100 disabled:text-zinc-400 text-white rounded-xl hover:bg-zinc-850 cursor-pointer transition-all duration-150 shadow-xs active:scale-98 disabled:pointer-events-none"
+        >
+          Save Key
+        </button>
+
+        @if (apiKey()) {
+          <button 
+            (click)="isConfiguringKey.set(false)"
+            class="w-full py-2 text-xs font-semibold text-zinc-500 hover:text-zinc-800 rounded-xl hover:bg-zinc-50 cursor-pointer transition-all duration-150 border border-zinc-150"
+          >
+            Cancel
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ================= 2. MASTER VIEW: THREADS LIST ================= -->
+  @else if (activeThread() === null) {
+    <div class="flex-1 flex flex-col p-6 overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4 shrink-0">
+        <span class="text-xs font-semibold text-zinc-950">AI Conversations</span>
+        <button 
+          (click)="isConfiguringKey.set(true)"
+          class="p-1 rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-700 cursor-pointer transition-all hover:bg-zinc-50"
+          title="Gemini API settings"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.43l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- New Chat Button -->
+      <button 
+        (click)="createNewThread()"
+        class="w-full py-2.5 px-4 mb-4 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-xl transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold text-zinc-800 cursor-pointer shadow-2xs hover:shadow-xs active:scale-99 shrink-0"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 text-zinc-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        New Chat
+      </button>
+
+      <!-- Scrollable Thread List -->
+      <div class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin">
+        @if (threads().length === 0) {
+          <div class="flex-1 flex flex-col items-center justify-center py-8 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor" class="w-7 h-7 text-zinc-300 mb-2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.58 16.24 3 14.187 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+            </svg>
+            <p class="text-[10px] text-zinc-400 font-medium">No conversations yet</p>
+          </div>
+        } @else {
+          @for (thread of threads(); track thread.id) {
+            <div 
+              (click)="selectThread(thread)"
+              class="group relative flex items-center justify-between p-3 rounded-xl border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50/50 transition-all duration-150 cursor-pointer overflow-hidden"
+            >
+              <!-- Info -->
+              <div class="min-w-0 flex-1 pr-6">
+                <p class="text-[11px] font-semibold text-zinc-800 truncate" [title]="thread.title">{{ thread.title }}</p>
+                <p class="text-[9px] font-mono text-zinc-400 mt-0.5">
+                  Updated {{ thread.updatedAt | date:'shortTime' }}
+                </p>
+              </div>
+
+              <!-- Delete Action -->
+              <button 
+                (click)="deleteThread($event, thread.id)"
+                class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-all absolute right-2.5 bg-white/90 backdrop-blur-xs border border-zinc-150 shadow-2xs cursor-pointer"
+                title="Delete Conversation"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-3 h-3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </button>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Settings status link at bottom -->
+      <div class="mt-4 pt-3 border-t border-zinc-100 shrink-0 flex items-center justify-between text-[10px] text-zinc-400">
+        <span>Default Model: {{ availableModels()[0]?.name || 'Gemini 2.5 Flash' }}</span>
+        <button 
+          (click)="isConfiguringKey.set(true)" 
+          class="text-zinc-500 hover:text-zinc-950 font-semibold cursor-pointer underline flex items-center gap-0.5"
+        >
+          Change Key
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ================= 3. DETAIL VIEW: CHAT CONVERSATION ================= -->
+  @else {
+    <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <!-- Back Header -->
+      <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2.5 shrink-0 bg-white">
+        <button 
+          type="button"
+          (click)="goBackToThreads()"
+          class="p-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-zinc-500 cursor-pointer transition-all flex items-center justify-center shrink-0"
+          title="Back to Chats"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+        </button>
+        <span 
+          class="font-display font-semibold text-xs tracking-tight text-zinc-950 truncate max-w-[150px] select-text" 
+          [title]="activeThread()?.title || ''"
+        >
+          {{ activeThread()?.title }}
+        </span>
+        
+        <button 
+          (click)="deleteThread($event, activeThread()!.id)"
+          class="ml-auto p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 cursor-pointer transition-all flex items-center justify-center shrink-0"
+          title="Delete chat"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+          </svg>
+        </button>
+      </div>
+
+
+      <!-- Messages Stream -->
+      <div 
+        #scrollContainer 
+        class="flex-1 overflow-y-auto p-4 flex flex-col gap-3.5 min-h-0 bg-zinc-50/50 scrollbar-thin"
+      >
+        @if (messages().length === 0) {
+          <div class="flex-1 flex flex-col items-center justify-center text-center p-6 text-zinc-300">
+            <div class="w-10 h-10 rounded-xl bg-white border border-zinc-150 flex items-center justify-center shadow-xs text-zinc-400 mb-3 animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 21l8.982-8.982m-9 9 1.303-3.476m0 0 4.5-4.5m0 0L21 3" />
+              </svg>
+            </div>
+            <span class="text-[11px] font-semibold text-zinc-800">Ask Gemini anything</span>
+            <span class="text-[9px] text-zinc-400 max-w-[180px] mt-0.5 leading-normal">Send a message to start the conversation with the assistant.</span>
+          </div>
+        } @else {
+          @for (message of messages(); track message.id) {
+            @if (message.functionCall) {
+              <!-- Tool Call (Compact status-aware style) -->
+              <div class="flex flex-col w-full self-start py-1 px-1">
+                <div 
+                  (click)="openToolDetails(message, $index)"
+                  class="flex items-center gap-1.5 px-2.5 py-1.5 border rounded-xl shadow-3xs cursor-pointer transition-all duration-150 self-start text-[10px] font-semibold select-none max-w-full"
+                  [ngClass]="{
+                    'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-500': message.functionCall.status === 'running',
+                    'border-emerald-100 bg-emerald-50/10 hover:bg-emerald-50/20 text-emerald-600': message.functionCall.status === 'success' || !message.functionCall.status,
+                    'border-red-100 bg-red-50/10 hover:bg-red-50/20 text-red-650': message.functionCall.status === 'error'
+                  }"
+                >
+                  @if (message.functionCall.status === 'running') {
+                    <svg class="animate-spin h-3.5 w-3.5 text-zinc-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="truncate">
+                      Tool: <span class="font-mono text-[9px] text-zinc-700 bg-zinc-150/50 border border-zinc-200/60 px-1 py-0.2 rounded">{{ message.functionCall.name }}</span>
+                      <span class="text-zinc-400 ml-1 font-normal">(running...)</span>
+                    </span>
+                  } @else if (message.functionCall.status === 'error') {
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 text-red-500 shrink-0">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    <span class="truncate">
+                      Tool: <span class="font-mono text-[9px] text-red-800 bg-red-100/30 border border-red-200/50 px-1 py-0.2 rounded">{{ message.functionCall.name }}</span>
+                      <span class="text-red-500 ml-1 font-normal">(failed)</span>
+                    </span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 text-emerald-500 shrink-0">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    <span class="truncate">
+                      Tool: <span class="font-mono text-[9px] text-emerald-800 bg-emerald-100/30 border border-emerald-200/40 px-1 py-0.2 rounded">{{ message.functionCall.name }}</span>
+                    </span>
+                  }
+                </div>
+              </div>
+            } @else if (message.functionResponse) {
+              <!-- Tool response messages are hidden from the chat UI log -->
+            } @else if (message.role === 'user') {
+              <div class="flex flex-col max-w-[85%] self-end">
+                <div class="text-[12px] px-3.5 py-2 rounded-2xl shadow-2xs leading-relaxed whitespace-pre-wrap select-text bg-zinc-950 text-white rounded-tr-xs">
+                  {{ message.content }}
+                </div>
+              </div>
+            } @else {
+              <div class="flex flex-col w-full max-w-full self-start pb-2">
+                @if (message.content.includes('[Gemini Error]') || message.content.includes('Error calling Gemini API')) {
+                  <div class="w-full border border-red-200/80 bg-red-50/20 rounded-2xl p-3.5 flex flex-col gap-2 shadow-3xs border-l-4 border-l-red-500">
+                    <div class="flex items-center gap-1.5 text-red-700 font-semibold text-xs select-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                      </svg>
+                      Gemini API Error
+                    </div>
+                    <div class="text-[11px] text-zinc-650 leading-relaxed whitespace-pre-wrap select-text font-mono">
+                      {{ message.content }}
+                    </div>
+                  </div>
+                } @else {
+                  <div class="text-[12px] text-zinc-800 leading-relaxed whitespace-pre-wrap select-text px-1">
+                    {{ message.content }}
+                  </div>
+                }
+              </div>
+            }
+          }
+        }
+
+        <!-- Generate Typing Indicator -->
+        @if (isGenerating()) {
+          <div class="flex items-center gap-1 shrink-0 py-2 px-1 select-none">
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce duration-300"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:0.15s] duration-300"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:0.3s] duration-300"></span>
+          </div>
+        }
+      </div>
+
+      <!-- Chat Bottom Input Container (ChatGPT style: unified card) -->
+      <div class="p-3 bg-white border-t border-zinc-100 shrink-0">
+        <div class="border border-zinc-200 rounded-2xl bg-zinc-50 focus-within:ring-1 focus-within:ring-zinc-950 focus-within:border-zinc-950 transition-all flex flex-col p-2 gap-1 px-3">
+          <!-- Textarea -->
+          <textarea 
+            [(ngModel)]="userMessageText"
+            (keydown.enter)="$event.preventDefault(); sendMessage()"
+            placeholder="Message Gemini..."
+            rows="1"
+            [disabled]="isGenerating()"
+            class="w-full min-h-[36px] max-h-[100px] border-0 outline-none focus:outline-none focus:ring-0 p-1 text-xs bg-transparent select-text resize-none scrollbar-none"
+          ></textarea>
+          
+          <!-- Bottom actions row -->
+          <div class="flex items-center justify-between pb-1">
+            <div class="flex items-center gap-2">
+              <!-- Model selector inside the input box -->
+              <select 
+                [ngModel]="activeThread()?.model" 
+                (ngModelChange)="onModelChange($event)"
+                class="bg-transparent hover:bg-zinc-200 border-0 rounded-lg px-2 py-1 text-[10px] font-semibold cursor-pointer text-zinc-500 hover:text-zinc-800 transition-all focus:outline-none focus:ring-0"
+              >
+                @for (model of availableModels(); track model.id) {
+                  <option [value]="model.id">{{ model.name }}</option>
+                }
+              </select>
+
+              <!-- Grid Toggle -->
+              <label class="flex items-center gap-1 cursor-pointer text-[10px] font-semibold text-zinc-500 hover:text-zinc-850 select-none px-1.5 py-0.5 rounded-lg hover:bg-zinc-150/50 transition-all">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="useGridOverlay" 
+                  class="w-3 h-3 rounded-sm border-zinc-300 text-zinc-950 focus:ring-zinc-950 focus:ring-0 cursor-pointer"
+                />
+                Grid AI
+              </label>
+            </div>
+
+            <!-- Send button inside the input box -->
+            <button 
+              (click)="sendMessage()"
+              [disabled]="!userMessageText.trim() || isGenerating()"
+              class="p-1.5 bg-zinc-950 text-white disabled:bg-transparent disabled:text-zinc-300 rounded-xl hover:bg-zinc-850 cursor-pointer disabled:pointer-events-none transition-all"
+              title="Send message"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Tool Execution Details Overlay Dialog -->
+  @if (selectedToolDetails()) {
+    <div class="absolute inset-0 bg-zinc-950/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div class="bg-white border border-zinc-150 rounded-2xl shadow-xl w-full max-w-[280px] p-4 flex flex-col gap-3 max-h-[85%] select-none overflow-hidden animate-scale-in">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-2 shrink-0">
+          <span class="text-xs font-semibold text-zinc-950 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 text-zinc-500">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+            </svg>
+            Tool Details
+          </span>
+          <button 
+            (click)="selectedToolDetails.set(null)"
+            class="p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 rounded-lg cursor-pointer transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 scrollbar-thin text-[10px] select-text">
+          <!-- Name -->
+          <div>
+            <span class="font-semibold text-zinc-400 block mb-1">Function Name</span>
+            <code class="px-1.5 py-0.5 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-800 font-mono text-[9px] font-semibold inline-block">
+              {{ selectedToolDetails()?.name }}
+            </code>
+          </div>
+
+          <!-- Arguments -->
+          <div>
+            <span class="font-semibold text-zinc-400 block mb-1">Arguments (Input)</span>
+            <pre class="bg-zinc-50 border border-zinc-150 rounded-lg p-2 font-mono text-[9px] text-zinc-650 overflow-x-auto leading-normal whitespace-pre-wrap select-text max-h-[120px]">{{ selectedToolDetails()?.args | json }}</pre>
+          </div>
+
+          <!-- Response or Error -->
+          @if (selectedToolDetails()?.error) {
+            <div>
+              <span class="font-semibold text-red-500 block mb-1">Error (Failure)</span>
+              <pre class="bg-red-50/20 border border-red-100 rounded-lg p-2 font-mono text-[9px] text-red-800 overflow-x-auto leading-normal whitespace-pre-wrap select-text max-h-[150px]">{{ selectedToolDetails()?.error }}</pre>
+            </div>
+          } @else {
+            <div>
+              <span class="font-semibold text-zinc-400 block mb-1">Response (Output)</span>
+              <pre class="bg-emerald-50/20 border border-emerald-100 rounded-lg p-2 font-mono text-[9px] text-emerald-850 overflow-x-auto leading-normal whitespace-pre-wrap select-text max-h-[150px]">{{ selectedToolDetails()?.response | json }}</pre>
+            </div>
+          }
+        </div>
+
+        <!-- Close Button -->
+        <button 
+          (click)="selectedToolDetails.set(null)"
+          class="w-full py-2 text-xs font-semibold bg-zinc-950 hover:bg-zinc-850 text-white rounded-xl cursor-pointer transition-all duration-150 shadow-xs shrink-0"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  }
+
+</div>
